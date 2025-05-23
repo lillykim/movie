@@ -8,9 +8,11 @@ if TYPE_CHECKING:
 
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    email: EmailStr
-    password: str
-    username: str
+    email: EmailStr = Field(nullable=False, unique=True)
+    password: str = Field(nullable=False)
+    username: str = Field(nullable=False)
+    is_active: bool = Field(default=True, nullable=False)
+    is_admin: bool = Field(default=False, nullable=False)
     events: Optional[List["Event"]] = Relationship(back_populates="user")
 
 class UserSignIn(SQLModel):
