@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
@@ -7,6 +8,7 @@ from auth.jwt_handler import create_jwt_token
 from database.connection import get_session
 from models.users import User, UserSignIn, UserSignUp
 from auth.authenticate import authenticate
+import re;
 
 
 user_router = APIRouter(tags=["User"])
@@ -15,6 +17,15 @@ hash_password = HashPassword()
 # 회원 가입(등록)
 @user_router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def sign_new_user(data: UserSignUp, session = Depends(get_session)) -> dict:
+    
+    # 비밀번호 유효성 검사
+    password_pattern = r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*(),.?\":{}|<>])[A-Za-z\d!@#$%^&*(),.?\":{}|<>]{8,}$"
+    if not re.fullmatch(password_pattern, data.password):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="비밀번호는 8자 이상이며, 영문자, 숫자, 특수문자를 각각 최소 1개 이상 포함해야 합니다."
+        )
+    
     # 이메일 중복 검사
     statement = select(User).where(User.email == data.email)
     user = session.exec(statement).first()
@@ -56,8 +67,12 @@ async def sign_in(data: OAuth2PasswordRequestForm = Depends(), session = Depends
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
-            detail="사용자를 찾을 수 없습니다.")    
-
+            detail="등록되지 않은 이메일입니다.")
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="해당 이메일은 탈퇴한 계정입니다. 관리자에게 문의하세요."
+        )    
     # if user.password != data.password:
     if hash_password.verify_password(data.password, user.password) == False:
         raise HTTPException(
@@ -90,4 +105,3 @@ async def delete_my_account(
     session.commit()
 
     return { "message": "회원탈퇴가 완료되었습니다." }
-
