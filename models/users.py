@@ -4,7 +4,7 @@ from sqlmodel import Field, Relationship, SQLModel
 # from models.events import Event
 
 if TYPE_CHECKING:
-    from models.events import Event
+    from models.movie import Movie
 
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -13,7 +13,7 @@ class User(SQLModel, table=True):
     username: str = Field(nullable=False)
     is_active: bool = Field(default=True, nullable=False)
     is_admin: bool = Field(default=False, nullable=False)
-    events: Optional[List["Event"]] = Relationship(back_populates="user")
+    movies: Optional[List["Movie"]] = Relationship(back_populates="user")
 
 class UserSignIn(SQLModel):
     email: EmailStr
