@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from routes.users import user_router
-from routes.events import event_router
+from routes.movies import movie_router
 from database.connection import conn
 
 @asynccontextmanager
@@ -27,7 +27,7 @@ app.add_middleware(
 )
 
 app.include_router(user_router, prefix="/users")
-app.include_router(event_router, prefix="/events")
+app.include_router(movie_router, prefix="/movies")
 
 
 if __name__ == "__main__":
