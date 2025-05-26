@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from routes.users import user_router
 from routes.movies import movie_router
+from routes.admin import admin_router
 from database.connection import conn
 
 @asynccontextmanager
@@ -28,6 +29,7 @@ app.add_middleware(
 
 app.include_router(user_router, prefix="/users")
 app.include_router(movie_router, prefix="/movies")
+app.include_router(admin_router, prefix="/admin")
 
 
 if __name__ == "__main__":
