@@ -5,6 +5,7 @@ from pathlib import Path as FilePath
 from fastapi import APIRouter, Depends, UploadFile, File, Form, Path, HTTPException, status, Body
 from fastapi.responses import FileResponse
 from sqlmodel import select
+from uuid import uuid4
 
 from auth.authenticate import authenticate
 from database.connection import get_session
@@ -44,11 +45,15 @@ async def create_movie(
     movie = Movie(**data_dict, user_id=user_id)
 
     # 포스터 저장
-    file_path = FILE_DIR / poster.filename
-    with open(file_path, "wb") as f:
-        f.write(poster.file.read())
+    if poster:
+     ext = poster.filename.split('.')[-1]
+     unique_filename = f"{uuid4().hex}.{ext}"
+     file_path = FILE_DIR / unique_filename
 
-    movie.poster_path = poster.filename
+     with open(file_path, "wb") as f:
+        f.write(poster.file.read())
+    
+    movie.poster_path = unique_filename # ✅ 경로 X, 파일명만
 
     session.add(movie)
     session.commit()
@@ -56,27 +61,44 @@ async def create_movie(
     return movie
 
 # 영화 수정
+from fastapi import UploadFile, File, Form
+
 @movie_router.put("/{movie_id}", response_model=Movie)
 async def update_movie(
     movie_id: int,
-    data: dict = Body(...),
+    data: str = Form(...),
+    poster: UploadFile = File(None),  # 포스터 선택 안 해도 가능하게
     user_id: int = Depends(authenticate),
     session=Depends(get_session)
 ):
+    parsed_data = json.loads(data)
     movie = session.get(Movie, movie_id)
     if not movie:
         raise HTTPException(status_code=404, detail="해당 영화를 찾을 수 없습니다.")
     if movie.user_id != user_id:
         raise HTTPException(status_code=403, detail="수정 권한이 없습니다.")
 
-    for key, value in data.items():
+    for key, value in parsed_data.items():
         if hasattr(movie, key):
             setattr(movie, key, value)
+
+    # 포스터 파일이 들어오면 저장
+    if poster:
+     ext = poster.filename.split('.')[-1]
+     unique_filename = f"{uuid4().hex}.{ext}"
+     file_path = FILE_DIR / unique_filename
+
+     with open(file_path, "wb") as f:
+        f.write(poster.file.read())
+    
+    movie.poster_path = unique_filename # ✅ 경로 X, 파일명만
+
 
     session.add(movie)
     session.commit()
     session.refresh(movie)
     return movie
+
 
 # 영화 삭제
 @movie_router.delete("/{movie_id}")
