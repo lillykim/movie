@@ -62,12 +62,13 @@ async def create_movie(
 
 # 영화 수정
 from fastapi import UploadFile, File, Form
+from models.users import User
 
 @movie_router.put("/{movie_id}", response_model=Movie)
 async def update_movie(
     movie_id: int,
     data: str = Form(...),
-    poster: UploadFile = File(None),  # 포스터 선택 안 해도 가능하게
+    poster: UploadFile = File(None),
     user_id: int = Depends(authenticate),
     session=Depends(get_session)
 ):
@@ -75,24 +76,25 @@ async def update_movie(
     movie = session.get(Movie, movie_id)
     if not movie:
         raise HTTPException(status_code=404, detail="해당 영화를 찾을 수 없습니다.")
-    if movie.user_id != user_id:
+
+    # 관리자 또는 작성자만 수정 가능
+    user = session.exec(select(User).where(User.id == user_id)).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="유저 정보를 찾을 수 없습니다.")
+    if not user.is_admin and movie.user_id != user_id:
         raise HTTPException(status_code=403, detail="수정 권한이 없습니다.")
 
     for key, value in parsed_data.items():
         if hasattr(movie, key):
             setattr(movie, key, value)
 
-    # 포스터 파일이 들어오면 저장
     if poster:
-     ext = poster.filename.split('.')[-1]
-     unique_filename = f"{uuid4().hex}.{ext}"
-     file_path = FILE_DIR / unique_filename
-
-     with open(file_path, "wb") as f:
-        f.write(poster.file.read())
-    
-    movie.poster_path = unique_filename # ✅ 경로 X, 파일명만
-
+        ext = poster.filename.split('.')[-1]
+        unique_filename = f"{uuid4().hex}.{ext}"
+        file_path = FILE_DIR / unique_filename
+        with open(file_path, "wb") as f:
+            f.write(poster.file.read())
+        movie.poster_path = unique_filename
 
     session.add(movie)
     session.commit()
@@ -106,7 +108,12 @@ async def delete_movie(movie_id: int, user_id: int = Depends(authenticate), sess
     movie = session.get(Movie, movie_id)
     if not movie:
         raise HTTPException(status_code=404, detail="해당 영화를 찾을 수 없습니다.")
-    if movie.user_id != user_id:
+
+    # 관리자 또는 작성자만 삭제 가능
+    user = session.exec(select(User).where(User.id == user_id)).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="유저 정보를 찾을 수 없습니다.")
+    if not user.is_admin and movie.user_id != user_id:
         raise HTTPException(status_code=403, detail="삭제 권한이 없습니다.")
 
     session.delete(movie)
