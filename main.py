@@ -21,7 +21,7 @@ app = FastAPI(lifespan=lifespan)
 from fastapi.middleware.cors import CORSMiddleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173","http://my-project-bucket-46.s3-website.ap-northeast-2.amazonaws.com","https://my-pic-saving-bucket.s3.ap-northeast-2.amazonaws.com"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],

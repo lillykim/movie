@@ -1,6 +1,7 @@
 from typing import Optional
 from datetime import datetime
 from sqlmodel import SQLModel, Field, Relationship
+from sqlalchemy import Column, Text
 
 from typing import TYPE_CHECKING
 
@@ -13,7 +14,7 @@ class Movie(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id", nullable=False, description="등록자 (회원 id, 외래키)")
 
     title: str = Field(max_length=255, nullable=False, description="영화 제목")
-    story: str = Field(nullable=False, description="영화 줄거리")
+    story: str = Field(sa_column=Column(Text), nullable=False, description="영화 줄거리")
     actors: str = Field(max_length=255, nullable=False, description="영화 배우")
     poster_path: Optional[str] = Field(default=None, max_length=255, description="포스터 이미지 파일명")
     rating: Optional[float] = Field(default=None, description="평균 별점")
