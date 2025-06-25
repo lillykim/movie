@@ -4,6 +4,7 @@ from routes.users import user_router
 from routes.movies import movie_router
 from routes.admin import admin_router
 from database.connection import conn
+import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -19,9 +20,13 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 from fastapi.middleware.cors import CORSMiddleware
+# 환경변수에서 CORS 허용 도메인 읽기 (여러 개일 경우 ,로 구분)
+origins = os.getenv("ALLOWED_ORIGINS", "").split(",")
+# CORS 미들웨어 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173","http://my-project-bucket-46.s3-website.ap-northeast-2.amazonaws.com","https://my-pic-saving-bucket.s3.ap-northeast-2.amazonaws.com"],
+    # allow_origins=["http://localhost:5173","http://my-project-bucket-46.s3-website.ap-northeast-2.amazonaws.com","https://my-pic-saving-bucket.s3.ap-northeast-2.amazonaws.com"],
+    allow_origins=origins, # 수정: 환경변수 사용
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],

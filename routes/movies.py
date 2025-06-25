@@ -22,6 +22,7 @@ load_dotenv()
 
 S3_BUCKET = os.getenv("S3_BUCKET")
 S3_REGION = os.getenv("S3_REGION")
+CLOUDFRONT_URL = os.getenv("CLOUDFRONT_URL") 
 aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
 aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
 
@@ -62,15 +63,16 @@ async def get_all_movies(session=Depends(get_session)) -> List[Movie]:
     movies = session.exec(statement).all()
     for movie in movies:
         if movie.poster_path:
-            presigned_url = s3.generate_presigned_url(
-                ClientMethod='get_object',
-                Params={
-                    'Bucket': S3_BUCKET,
-                    'Key': movie.poster_path
-                },
-                ExpiresIn=3600
-            )
-            movie.poster_path = presigned_url
+            movie.poster_path = f"{CLOUDFRONT_URL}/{movie.poster_path}"  # CloudFront URL로 반환
+            # presigned_url = s3.generate_presigned_url( # presigned URL 생성 로직 제거
+            #     ClientMethod='get_object',
+            #     Params={
+            #         'Bucket': S3_BUCKET,
+            #         'Key': movie.poster_path
+            #     },
+            #     ExpiresIn=3600
+            # )
+            # movie.poster_path = presigned_url          # presigned URL 생성 로직 제거
     return movies
 
 # 영화 단건 조회
@@ -80,17 +82,18 @@ async def get_movie(movie_id: int, session=Depends(get_session)) -> Movie:
     if not movie:
         raise HTTPException(status_code=404, detail="해당 영화를 찾을 수 없습니다.")
 
-    # 프리사인드 URL 생성
     if movie.poster_path:
-        presigned_url = s3.generate_presigned_url(
-            ClientMethod='get_object',
-            Params={
-                'Bucket': S3_BUCKET,
-                'Key': movie.poster_path
-            },
-            ExpiresIn=3600  # 1시간 유효
-        )
-        movie.poster_path = presigned_url  # 기존 필드에 덮어쓰기
+        movie.poster_path = f"{CLOUDFRONT_URL}/{movie.poster_path}"  # CloudFront URL로 반환
+    # if movie.poster_path:                              # 프리사인드 URL 생성 로직 제거
+    #     presigned_url = s3.generate_presigned_url(
+    #         ClientMethod='get_object',
+    #         Params={
+    #             'Bucket': S3_BUCKET,
+    #             'Key': movie.poster_path
+    #         },
+    #         ExpiresIn=3600  # 1시간 유효
+    #     )
+    #     movie.poster_path = presigned_url              # 프리사인드 URL 생성 로직 제거
 
     return movie
 

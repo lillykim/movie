@@ -1,0 +1,9 @@
+# 컨테이너 내부로 복사할 때 제외할 파일 및 디렉터리
+# File
+.dockerignore
+Dockerfile*
+
+
+# Directory
+venv
+__pycache__
