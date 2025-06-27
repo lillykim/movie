@@ -7,3 +7,6 @@ Dockerfile*
 # Directory
 venv
 __pycache__
+
+# 환경설정
+.env

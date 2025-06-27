@@ -18,7 +18,7 @@ import os
 from dotenv import load_dotenv
 
 # 이미지만 저장하는 S3버킷에 대한 설정 새로 추가
-load_dotenv()
+# load_dotenv()
 
 S3_BUCKET = os.getenv("S3_BUCKET")
 S3_REGION = os.getenv("S3_REGION")
