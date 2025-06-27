@@ -53,6 +53,12 @@ movie_router = APIRouter(tags=["Movie"])
 # FILE_DIR.mkdir(parents=True, exist_ok=True)
 
 # 영화 전체 조회
+def build_poster_url(poster_path):
+    if not poster_path:
+        return None
+    if poster_path.startswith("http://") or poster_path.startswith("https://"):
+        return poster_path
+    return f"{CLOUDFRONT_URL}/{poster_path}"
 # @movie_router.get("/", response_model=List[Movie])
 # async def get_all_movies(session=Depends(get_session)) -> List[Movie]:
 #     statement = select(Movie)
@@ -61,9 +67,13 @@ movie_router = APIRouter(tags=["Movie"])
 async def get_all_movies(session=Depends(get_session)) -> List[Movie]:
     statement = select(Movie)
     movies = session.exec(statement).all()
+    result = [] # url 중복 문제 해결용
     for movie in movies:
-        if movie.poster_path:
-            movie.poster_path = f"{CLOUDFRONT_URL}/{movie.poster_path}"  # CloudFront URL로 반환
+        movie_dict = movie.dict()
+        movie_dict["poster_url"] = build_poster_url(movie.poster_path)
+        result.append(movie_dict)
+        # if movie.poster_path:
+        #     movie.poster_path = f"{CLOUDFRONT_URL}/{movie.poster_path}"  # CloudFront URL로 반환
             # presigned_url = s3.generate_presigned_url( # presigned URL 생성 로직 제거
             #     ClientMethod='get_object',
             #     Params={
@@ -73,14 +83,23 @@ async def get_all_movies(session=Depends(get_session)) -> List[Movie]:
             #     ExpiresIn=3600
             # )
             # movie.poster_path = presigned_url          # presigned URL 생성 로직 제거
-    return movies
+    # return movies
+    return result
 
 # 영화 단건 조회
-@movie_router.get("/{movie_id}", response_model=Movie)
-async def get_movie(movie_id: int, session=Depends(get_session)) -> Movie:
+# @movie_router.get("/{movie_id}", response_model=Movie)
+# async def get_movie(movie_id: int, session=Depends(get_session)) -> Movie:
+#     movie = session.get(Movie, movie_id)
+#     if not movie:
+#         raise HTTPException(status_code=404, detail="해당 영화를 찾을 수 없습니다.") #url 중복 문제 해결용으로 일단 삭제
+@movie_router.get("/{movie_id}")
+async def get_movie(movie_id: int, session=Depends(get_session)):
     movie = session.get(Movie, movie_id)
     if not movie:
         raise HTTPException(status_code=404, detail="해당 영화를 찾을 수 없습니다.")
+    movie_dict = movie.dict()
+    movie_dict["poster_url"] = build_poster_url(movie.poster_path)
+    return movie_dict
 
     if movie.poster_path:
         movie.poster_path = f"{CLOUDFRONT_URL}/{movie.poster_path}"  # CloudFront URL로 반환
@@ -161,6 +180,8 @@ async def update_movie(
     user_id: int = Depends(authenticate),
     session=Depends(get_session)
 ):
+    # print("data:", data)         # 프론트에서 온 data 파라미터 값 출력
+    # print("poster:", poster)     # 프론트에서 온 poster 파일 정보 출력
     parsed_data = json.loads(data)
     movie = session.get(Movie, movie_id)
     if not movie:

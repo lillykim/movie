@@ -6,6 +6,12 @@ class Settings(BaseSettings):
     DATABASE_URL: Optional[str] = None
     SECRET_KEY: Optional[str] = None
     print(SECRET_KEY)
+    s3_bucket: str
+    s3_region: str
+    aws_access_key_id: str
+    aws_secret_access_key: str
+    cloudfront_url: str
+    allowed_origins: str
     
     class Config:
         env_file = ".env"
