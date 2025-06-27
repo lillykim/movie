@@ -36,6 +36,9 @@ app.include_router(user_router, prefix="/users")
 app.include_router(movie_router, prefix="/movies")
 app.include_router(admin_router, prefix="/admin")
 
+@app.get("/")
+def root():
+    return {"status": "ok"}
 
 if __name__ == "__main__":
     import uvicorn

@@ -7,9 +7,9 @@ WORKDIR /app
 # 깃허브에서 직접 클론해서 빌드하려면 아래처럼 url 입력
 # (점(.)을 붙이면 /app에 바로 복제됨)
 # requirements.txt 파일에 명시된 패키지를 설치
-RUN git clone https://github.com/lillykim/movie.git . && \
+RUN git clone  -b movie-for-cloud https://github.com/lillykim/movie.git . && \
     pip install --no-cache-dir -r requirements.txt
 
 # 컨테이너가 시작될 때 실행할 명령어를 지정
-# CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-CMD uvicorn main:app --host "0.0.0.0" --port 8000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# CMD uvicorn main:app --host "0.0.0.0" --port 8000
