@@ -11,5 +11,5 @@ RUN git clone  -b movie-for-cloud https://github.com/lillykim/movie.git . && \
     pip install --no-cache-dir -r requirements.txt
 
 # 컨테이너가 시작될 때 실행할 명령어를 지정
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-# CMD uvicorn main:app --host "0.0.0.0" --port 8000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+# CMD uvicorn main:app --host "0.0.0.0" --port 8000 --proxy-headers
