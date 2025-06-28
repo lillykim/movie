@@ -27,6 +27,7 @@ origins = [
     for origin in os.getenv("ALLOWED_ORIGINS", "").split(",")
     if origin.strip()
 ]
+print("CORS 허용 origins:", origins)
 # CORS 미들웨어 설정
 app.add_middleware(
     CORSMiddleware,
