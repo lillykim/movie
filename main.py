@@ -21,7 +21,12 @@ app = FastAPI(lifespan=lifespan)
 
 from fastapi.middleware.cors import CORSMiddleware
 # 환경변수에서 CORS 허용 도메인 읽기 (여러 개일 경우 ,로 구분)
-origins = os.getenv("ALLOWED_ORIGINS", "").split(",")
+# origins = os.getenv("ALLOWED_ORIGINS", "").split(",")
+origins = [
+    origin.strip()
+    for origin in os.getenv("ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+]
 # CORS 미들웨어 설정
 app.add_middleware(
     CORSMiddleware,
