@@ -33,7 +33,8 @@ app.add_middleware(
     # allow_origins=["http://localhost:5173","http://my-project-bucket-46.s3-website.ap-northeast-2.amazonaws.com","https://my-pic-saving-bucket.s3.ap-northeast-2.amazonaws.com"],
     allow_origins=origins, # 수정: 환경변수 사용
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    # allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
